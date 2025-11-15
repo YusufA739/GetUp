@@ -14,7 +14,7 @@ public class Game {
     public static int tick = 0;//can change to private and non-static as it is passed always as a parameter
 
     private int maxTick = 29; //controls the frames in every in-game second (you can make seconds longer by increasing this value, but it will not speed up or slow down the physics, only logical time delays (so getting up takes longer, but the falling down part still takes the same amount of time, physical physics will be the same but logic for physics will change)
-    private int fps = 60; //60fps is the max that you can feel/see for the engine
+    private int fps = 60; //60fps is the max stable fps of the engine
 
     //all permanent bodies (should never be deleted)
     /**

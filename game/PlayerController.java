@@ -603,6 +603,10 @@ public class PlayerController {
                 if (e.getKeyCode() == KeyEvent.VK_O) {
                     keysToggle[7] = true;
                 }
+                //Physics Sim access
+                if (e.getKeyCode() == KeyEvent.VK_P) {
+                    Game.
+                }
             }
 
             @Override

@@ -5,16 +5,11 @@ import city.cs.engine.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
 
 import static org.jbox2d.common.MathUtils.floor;
-import static org.jbox2d.common.MathUtils.round;
 
 /**
  * GameView is used as the viewport for the game to see into the world. You can view world through here, and it is not locked to the player, but it can be made to be locked by passing the player's coordinates to the setCentre method.
@@ -284,10 +279,10 @@ public class GameView extends UserView {
     protected void paintBackground(Graphics2D g) {
         if (!localPCGV.gamePaused) {
             if (Level.currentLevelNumber == 0) {
-                if (l0imagecounter >= l0images.length * frameduration) {
+                if (l0imagecounter >= l0images.length * (frameduration + 14 )) {
                     l0imagecounter = 0;
                 }
-                g.drawImage(l0images[floor(l0imagecounter / frameduration)], 0, 0, getWidth(), getHeight(), this);
+                g.drawImage(l0images[floor(l0imagecounter / (frameduration + 14))], 0, 0, getWidth(), getHeight(), this);
                 l0imagecounter++;
             }
 

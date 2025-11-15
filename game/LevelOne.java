@@ -1,11 +1,6 @@
 package game;
 
 import city.cs.engine.SoundClip;
-import city.cs.engine.World;
-
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
 
 public class LevelOne extends Level {
 

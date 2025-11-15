@@ -8,6 +8,9 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+//Physics Objects
+import PlanetaryExpansionPack1.Planet;
+
 /**
  * Level Superclass. Abstract class used for all levels to reduce code redundancy and duplication.#
  */
@@ -129,6 +132,7 @@ public abstract class Level {
         DynamicPlatform.setLevel(givenLevel);
         DynamicOrb.setLevel(givenLevel);
         SeekingAirMine.setLevel(givenLevel);//not used currently, but added for future usages
+        Planet.setLevel(givenLevel);
     }
 
     //updaters (s or d means static or dynamic platform. 'so' or 'do' mean static orb and dynamic orb respectively)

@@ -14,6 +14,7 @@ import game.PlayerDynamicBody;
 import org.jbox2d.common.Vec2;
 
 
+import static game.Game.tick;
 import static org.jbox2d.common.MathUtils.*;
 
 /**
@@ -24,11 +25,6 @@ public class Planet {
     private float incrementY = 0;
     private float radiusX = 0;
     private float radiusY = 0;
-
-    private float amplitudeOfOscillationX = 0;
-    private float amplitudeOfOscillationY = 0;
-    private float currentDisplacementX = 0;
-    private float currentDisplacementY = 0;
 
     private float gravity = 0;
     private float gravityScale = 0;
@@ -51,36 +47,21 @@ public class Planet {
     private static PlayerController localRefPlayerControllerDynamicOrb;
 
     //physics - units in SI standard units (Voltage in Volts, Current in Amperes, Distance in metres)
-    private int mass;
-    private float radius = 0;
+    private double mass;
+    private double accelerationX;
+    private double accelerationY;
+    private double ForceX;
+    private double ForceY;
+    private double newForceX;
+    private double newForceY;
+    private double displacementX;
+    private double displacementY;
+    private final double G = 6.674 * Math.pow(10,-11);
+    private double radius = 0;
 
-    public Planet(World givenWorld, float givenRadius, float givenX, float givenY, float givenAmplitudeOfOscillationX, float givenAmplitudeOfOscillationY, float givenGravity, float givenGravityScale, float givenIncrementX, float givenIncrementY, float givenRadiusX, float givenRadiusY) {
-        /*vertical platforms are 'risers'
-        first 3 passed variables should NOT be changed after instantiation, which is why no setters are provided for them in the class*/
-        localWorld = givenWorld;
-        localShape = new CircleShape(givenRadius);
+    private double velocityX; //better than Velocity-9!!!
+    private double velocityY;
 
-        // object coming into creation
-        localDynamicOrb = new DynamicBody(givenWorld, localShape);
-        localDynamicOrb.setPosition(new Vec2(givenX, givenY));
-        // end of section
-
-        localDynamicOrb.setGravityScale(givenGravityScale);
-
-        radius = givenRadius;
-        localX = givenX;
-        localY = givenY;
-        topDeadCentreCoords[0] = givenX;
-        topDeadCentreCoords[1] = givenY;
-        amplitudeOfOscillationX = givenAmplitudeOfOscillationX;
-        amplitudeOfOscillationY = givenAmplitudeOfOscillationY;
-        gravity = givenGravity;
-        gravityScale = givenGravityScale;
-        incrementX = givenIncrementX;
-        incrementY = givenIncrementY;
-        radiusX = givenRadiusX;
-        radiusY = givenRadiusY;
-    }
 
     /**
      * Active Constructor; transition from using other constructors and use this one
@@ -113,8 +94,6 @@ public class Planet {
         localY = givenY;
         topDeadCentreCoords[0] = givenX;
         topDeadCentreCoords[1] = givenY;
-        amplitudeOfOscillationX = givenAmplitudeOfOscillationX;
-        amplitudeOfOscillationY = givenAmplitudeOfOscillationY;
         gravity = givenGravity;
         gravityScale = givenGravityScale;
         incrementX = givenIncrementX;
@@ -122,6 +101,24 @@ public class Planet {
         radiusX = givenRadiusX;
         radiusY = givenRadiusY;
     }
+
+    //Physics
+    public void addForce(float otherBodyMass, float otherBodyX, float otherBodyY) { //use the mass, Luke
+        displacementX = localX - otherBodyX;
+        displacementY = localY - otherBodyY;
+        newForceX = (G * mass * otherBodyMass)/displacementX;
+        newForceY = (G * mass * otherBodyMass)/displacementY;
+        ForceX += newForceX;
+        ForceY += newForceY;
+        accelerationX = ForceX/mass;
+        accelerationY = ForceY/mass;
+    }
+
+    public void update(int updateRate) {
+        velocityX += accelerationX / updateRate;
+        velocityY += accelerationY / updateRate;
+    }
+
 
 
     //setters
@@ -142,28 +139,12 @@ public class Planet {
         topDeadCentreCoords[1] = givenY;
     }
 
-    public void setAmplitudeOfOscillationX(float givenAmplitudeOfOscillationX) {
-        amplitudeOfOscillationX = givenAmplitudeOfOscillationX;
-    }
-
-    public void setAmplitudeOfOscillationY(float givenAmplitudeOfOscillationY) {
-        amplitudeOfOscillationY = givenAmplitudeOfOscillationY;
-    }
-
     public void setGravity(float givenGravity) {
         gravity = givenGravity;
     }
 
     public void setGravityScale(float givenGravityScale) {
         gravityScale = givenGravityScale;
-    }
-
-    public void setIncrementX(float givenIncrementX) {
-        incrementX = givenIncrementX;
-    }
-
-    public void setIncrementY(float givenIncrementY) {
-        incrementY = givenIncrementY;
     }
 
     public void setRadiusX(float givenRadiusX) {
@@ -178,10 +159,6 @@ public class Planet {
         localRefPlayerControllerDynamicOrb = givenPlayerController;
     }
 
-//    public void setGame(Game givenGame) {
-//        localGame = givenGame;
-//    }Nope, don't use this implementation in the future
-
     public static void setWorld(World givenWorld) {
         localWorld = givenWorld;
     }
@@ -190,64 +167,6 @@ public class Planet {
         localLevel = givenLevel;
     }
     //end of setters
-
-    //slider code
-    public void dynamicSlider() {
-        localX += incrementX;
-        currentDisplacementX += incrementX;
-
-        if (abs(currentDisplacementX) >= amplitudeOfOscillationX) {
-            incrementX =- incrementX;
-        }
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-    }
-    //end of slider code. If it switches between sliding and orbit you may encounter inconsistent behaviour
-
-    //riser code
-    public void dynamicRiser() {
-        localY += incrementY;
-        currentDisplacementY += incrementY;
-
-        if (abs(currentDisplacementY) >= amplitudeOfOscillationY) {
-            incrementY =- incrementY;
-        }
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-    }
-    //end of riser code read the comments for slider code, same issue here if switching to circular
-
-    public void dynamicGravity() {
-        localY -= gravity;
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-    }
-
-    public void dynamicGravity(float givenGravity) {
-        localY -= givenGravity; //DO NOT USE, just use gravityScale
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-    }
-
-    public void dynamicGravityScale() {
-        localDynamicOrb.setGravityScale(gravityScale);
-    }
-
-    public void dynamicGravityScale(float givenGravityScale) {
-        localDynamicOrb.setGravityScale(givenGravityScale);
-    }
-
-    public void dynamicDiagonal() {
-        //more immediate than manual use of position updating
-        localX += incrementX;
-        currentDisplacementX += incrementX;
-        localY += incrementY;
-        currentDisplacementY += incrementY;
-
-        if (abs(currentDisplacementX) >= amplitudeOfOscillationX) {
-            incrementX =- incrementX;
-        }
-        if (abs(currentDisplacementY) >= amplitudeOfOscillationY) {
-            incrementY =- incrementY;
-        }
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-    }
 
     public void dynamicOrbit() {
         localX = topDeadCentreCoords[0] + radiusX * sin(thetaX * ((2*PI)/360));
@@ -278,28 +197,6 @@ public class Planet {
     }
     //end of getters
 
-    public void isSpeedPotionSensor() {
-        sensorPrep().addSensorListener(new SensorListener() {
-            SoundClip sc = fetchSoundClip("data/drink.wav");
-            @Override
-            public void beginContact(SensorEvent sensorEvent) {
-                Body reportingBody = sensorEvent.getContactBody();
-                SolidFixture otherBody = sensorEvent.getContactFixture();
-                if (reportingBody instanceof PlayerDynamicBody) {
-                    localDynamicOrb.destroy();
-                    localRefPlayerControllerDynamicOrb.superSpeedPickup();
-                    sc.play();
-                }
-            }
-
-            @Override
-            public void endContact(SensorEvent sensorEvent) {
-
-            }
-        });
-        localDynamicOrb.addImage(new BodyImage("data/speedpotionOutline.png", radius*2));
-    }
-
     public void isHeartSensor() {
         SoundClip sc = fetchSoundClip("data/grow.wav");//used to be 1upAmped.wav
         sensorPrep().addSensorListener(new SensorListener() {
@@ -319,7 +216,7 @@ public class Planet {
 
             }
         });
-        localDynamicOrb.addImage(new BodyImage("data/heartsquare.png", radius*2));
+        localDynamicOrb.addImage(new BodyImage("data/heartsquare.png", (float) (radius*2)));
     }
 
     public void isCoinSensor() {
@@ -342,7 +239,7 @@ public class Planet {
 
             }
         });
-        localDynamicOrb.addImage(new BodyImage("data/coinCircle.png", radius*2));
+        localDynamicOrb.addImage(new BodyImage("data/coinCircle.png", (float) (radius*2)));
     }
 
     public void isEndCoinSensor() {
@@ -365,7 +262,7 @@ public class Planet {
                 //this won't register/be executed/be called, unless the object is not destroyed upon first contact
             }
         });
-        localDynamicOrb.addImage(new BodyImage("data/endCoinCircle.png", radius*2));
+        localDynamicOrb.addImage(new BodyImage("data/endCoinCircle.png", (float) (radius*2)));
     }
 
     public Sensor sensorPrep() {
@@ -377,73 +274,11 @@ public class Planet {
         return new Sensor(localDynamicOrb, new CircleShape(radius));
     }
 
-    public void isCoin() {
-        localDynamicOrb.removeAllImages(); //remove prev. images
-        localDynamicOrb.addImage(new BodyImage("data/coinCircle.png", radius*2)); //add new image
-        //will create a collision listener that is then added to the local dynamic orb
-        CollisionListener coinCollect = new CollisionListener() {
-
-            @Override
-            public void collide(CollisionEvent e) {
-                Body reportingBody = e.getReportingBody();
-                Body otherBody = e.getOtherBody();
-                if (otherBody instanceof PlayerDynamicBody) {
-                    localRefPlayerControllerDynamicOrb.scoreIncrease();
-                    reportingBody.destroy();
-                } //destroy the coin when it hits a player
-            }
-
-        }; //end of CollisionListener code
-        //add to object via local reference
-        localDynamicOrb.addCollisionListener(coinCollect);
-    }//end of code
-
-    public void isHeart() {
-        localDynamicOrb.removeAllImages(); //remove previous images
-        localDynamicOrb.addImage(new BodyImage("data/heartsquare.png", radius*2));
-        //will create a collision listener that is then added to the local dynamic orb
-        CollisionListener coinCollect = new CollisionListener() {
-
-            @Override
-            public void collide(CollisionEvent e) {
-                Body reportingBody = e.getReportingBody();
-                Body otherBody = e.getOtherBody();
-                if (otherBody instanceof PlayerDynamicBody) {
-                    localRefPlayerControllerDynamicOrb.healthIncrease();
-                    reportingBody.destroy();
-                } //destroy the coin when it hits a player
-            }
-
-        }; //end of CollisionListener code
-        //add to object via local reference
-        localDynamicOrb.addCollisionListener(coinCollect);
-    }//end of code
-
-    public void endCoin() {
-        localDynamicOrb.addImage(new BodyImage("data/coinCircleBig.png", radius*2));
-        //will create a collision listener that is then added to the local dynamic orb
-        CollisionListener coinCollect = new CollisionListener() {
-
-            @Override
-            public void collide(CollisionEvent e) {
-                Body reportingBody = e.getReportingBody();
-                Body otherBody = e.getOtherBody();
-                if (otherBody instanceof PlayerDynamicBody) {
-                    localRefPlayerControllerDynamicOrb.scoreIncrease(10);
-                    reportingBody.destroy();
-                } //destroy the coin when it hits a player
-            }
-
-        }; //end of CollisionListener code
-        //add to object via local reference
-        localDynamicOrb.addCollisionListener(coinCollect);
-    }//end of code
-
     //image missing
     public void imageMissing() {
         try {
             localDynamicOrb.removeAllImages();
-            localDynamicOrb.addImage(new BodyImage("data/missingimage.png", radius*2));
+            localDynamicOrb.addImage(new BodyImage("data/missingimage.png",(float) (radius*2)));
         }
         catch (Exception e) {
             localDynamicOrb.removeAllImages();

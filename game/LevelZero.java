@@ -1,11 +1,6 @@
 package game;
 
 import city.cs.engine.SoundClip;
-import city.cs.engine.World;
-
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
 
 public class LevelZero extends Level {
     private StaticOrb speedPotion;
@@ -54,7 +49,7 @@ public class LevelZero extends Level {
         warningSign2.isWarningSign();
 
         //DO_ORBIT (endCoins first)
-        finalCoin = new DynamicOrb(localWorld,1, -5f, 10f, 0, 0, 0, 0, 0, 6, 0, 1f);
+        finalCoin = new DynamicOrb(1, -5f, 10f, 0, 0, 0, 0, 0, 6, 0, 1f);
         doAll.add(finalCoin);//for deleting
         doOrbit.add(finalCoin);//for updating
         finalCoin.isEndCoinSensor();

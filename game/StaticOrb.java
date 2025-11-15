@@ -6,7 +6,6 @@ import org.jbox2d.common.Vec2;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.awt.*;
 import java.io.IOException;
 
 import static org.jbox2d.common.MathUtils.*;
