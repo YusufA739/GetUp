@@ -121,6 +121,11 @@ public class PlayerController {
 
 
 
+    //Physics Simulator Code
+    private boolean PhysicsSimPressed = false;
+
+
+
     /**
      *Constructor to create PlayerController with a PlayerDynamicBody as an attribute (class wrapper)
      * @param givenWorld World
@@ -162,6 +167,10 @@ public class PlayerController {
             usernamePrep();//preps the game for receiving username from player assumption on call is that the player has no health
             restartPressed = false;
         }
+        else if (PhysicsSimPressed) {
+            Game.PhysicsSim =  true;
+            PhysicsSimPressed = false;
+        }
     }
 
     /**
@@ -183,7 +192,7 @@ public class PlayerController {
 
     /**
      * AllUpdate method for all tasks that do not matter what part of the frame they take place
-     * @param givenTick
+     * @param givenTick the given tick update rate to use for logic
      */
     public void allUpdate(int givenTick) {//could be renamed to update() but to keep consistency for naming within the class, I've kept it like this
     }
@@ -605,7 +614,7 @@ public class PlayerController {
                 }
                 //Physics Sim access
                 if (e.getKeyCode() == KeyEvent.VK_P) {
-                    Game.
+                    PhysicsSimPressed = true;
                 }
             }
 
@@ -1147,4 +1156,9 @@ public class PlayerController {
     unused idea
     }
     end of deprecated*/
+
+
+    public void destroy() {
+        playerBody.destroy();//For Physics Sim only pls do not use otherwise, or maybe I will need for future
+    }
 }

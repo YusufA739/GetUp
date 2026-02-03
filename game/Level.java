@@ -23,6 +23,7 @@ public abstract class Level {
     ArrayList<StaticOrb> soAll = new ArrayList<>(10);//used for deletion of all level objects of this type
     ArrayList<DynamicOrb> doAll = new ArrayList<>(10);//used for deletion of all level objects of this type
     ArrayList<SeekingAirMine> sMineAll = new ArrayList<>(2);//used for deletion of all level objects of this type
+    ArrayList<Planet> pAll = new ArrayList<>(2);
 
 //    ArrayList<StaticPlatform> sStationary = new ArrayList<>(10);//current use: none
 //    ArrayList<DynamicPlatform> dStationary = new ArrayList<>(10);//current use: none
@@ -118,6 +119,8 @@ public abstract class Level {
         DynamicOrb.setWorld(localWorld);
         SeekingAirMine.setPlayerController(localPCLevel);
         SeekingAirMine.setWorld(localWorld);
+        Planet.setPlayerController(localPCLevel);
+        Planet.setWorld(localWorld);
     }//static assignment of variables that will never (as currently planned) change
     //called before game starts up, once
 
@@ -273,6 +276,14 @@ public abstract class Level {
         for (SeekingAirMine body : sMineUpdate) {
             body.update(Game.tick);
         }
+    }
+
+    //physics sim
+    public void pAllUpdate() {
+        for (Planet body : pAll) {
+            body.update(Game.fps);//I have chosen not to make Game objects as they need to update all bodies after creation with the fps of the sim
+            // Easier to use static as only one Game at one set fps will be running
+        }//I also don't need to pass the game object either as the class template holds the value
     }
     //end of updaters
 

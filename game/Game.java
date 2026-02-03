@@ -11,10 +11,13 @@ import java.util.*;
 public class Game {
 
     public static boolean restartGame = false;
+    public static boolean PhysicsSim = false;
     public static int tick = 0;//can change to private and non-static as it is passed always as a parameter
 
     private int maxTick = 29; //controls the frames in every in-game second (you can make seconds longer by increasing this value, but it will not speed up or slow down the physics, only logical time delays (so getting up takes longer, but the falling down part still takes the same amount of time, physical physics will be the same but logic for physics will change)
-    private int fps = 60; //60fps is the max stable fps of the engine
+    public static int fps = 60; //60fps is the max stable fps of the engine
+
+    private int physicsSimLevelNumber = 12;//sim level no. (AVOIDS PIRATESOFTWARE a.k.a magic numbers)
 
     //all permanent bodies (should never be deleted)
     /**
@@ -137,6 +140,11 @@ public class Game {
         //Do not end on a transition (it increments the level counter, and it causes Array Index Out of Bounds error)
         InputUsername iu = new InputUsername();
         levelsCollection.add(iu);
+        LevelTransition lt5 = new LevelTransition();
+        levelsCollection.add(lt5);
+        LevelSim ls = new LevelSim();
+        levelsCollection.add(ls);
+
 
         currentLevelObject = l0;
         currentLevelObject.load();//preload level so when user presses start, first level loads quickly
@@ -156,7 +164,7 @@ public class Game {
 
 
 
-//        forceLoad(10);
+//        forceLoad(11);
 
 
         // Create a new stepListener called gameStep.
@@ -170,6 +178,12 @@ public class Game {
                     if (restartGame) {
                         restartGame = false;
                         resetGame();
+                    }
+                    else if (PhysicsSim) {
+                        forceLoad(12);//SECRET LEVEL 6!!!
+                        sp.destroy();
+                        PhysicsSim = false;
+                        //DO NOT RESET THE GAME, SAMIR!!!
                     }
                 }
             }
@@ -313,11 +327,14 @@ public class Game {
         gameLoadedLevel = LevelNumber;
         currentLevelObject = levelsCollection.get(Level.currentLevelNumber);
         currentLevelObject.load();
-        player1.newLevel(0, -17);
+        player1.newLevel(0, 0);
         currentLevelObject.levelLoaded = true;
         gamePaused = false;
         player1.gamePaused = false;
         pausedMusic = true;
+        if (LevelNumber == physicsSimLevelNumber) { //physics sim level
+            player1.destroy();
+        }
     }
 
 

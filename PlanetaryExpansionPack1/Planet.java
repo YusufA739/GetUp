@@ -1,11 +1,5 @@
 package PlanetaryExpansionPack1;
 
-//* Most ahead of features when compared with other Body classes that are interacted with via the player
-//
-// */
-
-
-
 import city.cs.engine.*;
 import game.Game;
 import game.Level;
@@ -21,23 +15,13 @@ import static org.jbox2d.common.MathUtils.*;
  * DynamicBody with a CircleShape
  */
 public class Planet {
-    private float incrementX = 0;
-    private float incrementY = 0;
-    private float radiusX = 0;
-    private float radiusY = 0;
+    private double radiusX = 0;
+    private double radiusY = 0;
 
-    private float gravity = 0;
-    private float gravityScale = 0;
+    public double localX;
+    public double localY;//optional: make these into localCoords[], but nah no point in doing it, but if I wanted it to be nicer, as coord pairs look better and are way easier to deal with, but if I'm bored then yeah otherwise, nothing wrong with this implementation
 
-    private float localX;
-    private float localY;//optional: make these into localCoords[], but nah no point in doing it, but if I wanted it to be nicer, as coord pairs look better and are way easier to deal with, but if I'm bored then yeah otherwise, nothing wrong with this implementation
-
-    private float thetaX = 0;
-    private float thetaY = 0;//(nope) -> thetaPlanes[]
-
-    private boolean isAscending = false;
-
-    private float[] topDeadCentreCoords = new float[2];
+    private double[] initialPosition = new double[2];
 
     //private static Game localGame;
     private static World localWorld;
@@ -47,15 +31,16 @@ public class Planet {
     private static PlayerController localRefPlayerControllerDynamicOrb;
 
     //physics - units in SI standard units (Voltage in Volts, Current in Amperes, Distance in metres)
-    private double mass;
-    private double accelerationX;
-    private double accelerationY;
-    private double ForceX;
-    private double ForceY;
-    private double newForceX;
-    private double newForceY;
-    private double displacementX;
-    private double displacementY;
+    public double mass = 0;
+    private double accelerationX = 0;
+    private double accelerationY = 0;
+    private double ForceX = 0;
+    private double ForceY = 0;
+    private double numerator = 0;
+    private double newForceX = 0;
+    private double newForceY = 0;
+    private double displacementX = 0;
+    private double displacementY = 0;
     private final double G = 6.674 * Math.pow(10,-11);
     private double radius = 0;
 
@@ -68,55 +53,59 @@ public class Planet {
      * @param givenRadius float
      * @param givenX float
      * @param givenY float
-     * @param givenAmplitudeOfOscillationX float
-     * @param givenAmplitudeOfOscillationY float
-     * @param givenGravity float
-     * @param givenGravityScale float
-     * @param givenIncrementX float
-     * @param givenIncrementY float
-     * @param givenRadiusX float
-     * @param givenRadiusY float
      */
-    public Planet(float givenRadius, float givenX, float givenY, float givenAmplitudeOfOscillationX, float givenAmplitudeOfOscillationY, float givenGravity, float givenGravityScale, float givenIncrementX, float givenIncrementY, float givenRadiusX, float givenRadiusY) {
+    public Planet(double givenRadius, double givenMass, double givenX, double givenY, double initialVelocityX, double initialVelocityY) {
         /*vertical platforms are 'risers'
         first 3 passed variables should NOT be changed after instantiation, which is why no setters are provided for them in the class*/
-        localShape = new CircleShape(givenRadius);
+        localShape = new CircleShape((float)givenRadius);
 
         // object coming into creation
         localDynamicOrb = new DynamicBody(localWorld, localShape);
-        localDynamicOrb.setPosition(new Vec2(givenX, givenY));
+        localDynamicOrb.setPosition(new Vec2((float)givenX, (float)givenY));
         // end of section
 
-        localDynamicOrb.setGravityScale(givenGravityScale);
+        localDynamicOrb.setGravityScale(0);
 
         radius = givenRadius;
+        mass = givenMass;
         localX = givenX;
         localY = givenY;
-        topDeadCentreCoords[0] = givenX;
-        topDeadCentreCoords[1] = givenY;
-        gravity = givenGravity;
-        gravityScale = givenGravityScale;
-        incrementX = givenIncrementX;
-        incrementY = givenIncrementY;
-        radiusX = givenRadiusX;
-        radiusY = givenRadiusY;
+        initialPosition[0] = givenX;
+        initialPosition[1] = givenY;
+        velocityX = initialVelocityX;
+        velocityY = initialVelocityY;
     }
 
     //Physics
-    public void addForce(float otherBodyMass, float otherBodyX, float otherBodyY) { //use the mass, Luke
+    public void addForce(double otherBodyMass, double otherBodyX, double otherBodyY) { //use the mass, Luke
         displacementX = localX - otherBodyX;
         displacementY = localY - otherBodyY;
-        newForceX = (G * mass * otherBodyMass)/displacementX;
-        newForceY = (G * mass * otherBodyMass)/displacementY;
+
+        numerator = (G * mass * otherBodyMass);//if too small, it will be 0 due to computer floating point stuff
+        if (numerator != 0) {
+            newForceX = numerator/Math.pow(displacementX,2); // x = 0/n, n ∈ R ∴ x=inf -> AVOID QUOTIENT/NUMERATOR FROM BECOMING 0, SKIP CALC IF IT IS
+            newForceY = numerator/Math.pow(displacementY,2);
+        }
+
         ForceX += newForceX;
         ForceY += newForceY;
-        accelerationX = ForceX/mass;
-        accelerationY = ForceY/mass;
     }
 
     public void update(int updateRate) {
-        velocityX += accelerationX / updateRate;
-        velocityY += accelerationY / updateRate;
+        if (abs((float)ForceX) > 0) {
+            accelerationX = ForceX/mass;
+            velocityX += accelerationX / updateRate;
+        }
+        if (abs((float)ForceY) > 0) {
+            accelerationY = ForceY/mass;
+            velocityY += accelerationY / updateRate;
+        }
+        ForceX = 0;
+        ForceY = 0;
+        if (randomFloat(0,100) <= 1) {
+            System.out.println("VelX:" +  velocityX + " VelY:" + velocityY);
+        }
+        localDynamicOrb.setLinearVelocity(new Vec2((float)velocityX*100, (float)velocityY*100));
     }
 
 
@@ -124,27 +113,19 @@ public class Planet {
     //setters
     public void setX(float givenX) {
         localX = givenX;
-        topDeadCentreCoords[0] = givenX;
+        initialPosition[0] = givenX;
     }
 
     public void setY(float givenY) {
         localY = givenY;
-        topDeadCentreCoords[1] = givenY;
+        initialPosition[1] = givenY;
     }
 
     public void setCoords(float givenX, float givenY) {
         localX = givenX;
         localY = givenY;
-        topDeadCentreCoords[0] = givenX;
-        topDeadCentreCoords[1] = givenY;
-    }
-
-    public void setGravity(float givenGravity) {
-        gravity = givenGravity;
-    }
-
-    public void setGravityScale(float givenGravityScale) {
-        gravityScale = givenGravityScale;
+        initialPosition[0] = givenX;
+        initialPosition[1] = givenY;
     }
 
     public void setRadiusX(float givenRadiusX) {
@@ -167,35 +148,6 @@ public class Planet {
         localLevel = givenLevel;
     }
     //end of setters
-
-    public void dynamicOrbit() {
-        localX = topDeadCentreCoords[0] + radiusX * sin(thetaX * ((2*PI)/360));
-        /* using increments here is assumption that the platform will only be used as an orbiting body, not reused from a previous type. Either way, set the value again using setter if you
-        are reusing the object from slider to orbiting (or other type to orbiting) NOT RECOMMENDED THOUGH
-         */
-        localY = topDeadCentreCoords[1] + radiusY * cos(thetaY * ((2*PI)/360));
-
-        thetaX += incrementX;
-        thetaY += incrementY;
-
-        if (thetaX >= 360) {
-            thetaX -= 360;
-        }
-        if (thetaY >= 360) {
-            thetaY -= 360;
-        }
-
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-
-        isAscending = thetaY >= 180;
-        //System.out.println(isAscending);
-    }
-
-    //getters
-    public boolean getIsAscending() {
-        return isAscending;
-    }
-    //end of getters
 
     public void isHeartSensor() {
         SoundClip sc = fetchSoundClip("data/grow.wav");//used to be 1upAmped.wav
@@ -267,11 +219,11 @@ public class Planet {
 
     public Sensor sensorPrep() {
         localDynamicOrb.destroy();
-        localShape = new CircleShape(radius*0.1f);
+        localShape = new CircleShape((float)radius*0.1f);
         localDynamicOrb = new DynamicBody(localWorld, localShape);
-        localDynamicOrb.setGravityScale(gravity);
-        localDynamicOrb.setPosition(new Vec2(localX, localY));
-        return new Sensor(localDynamicOrb, new CircleShape(radius));
+        localDynamicOrb.setGravityScale(0);
+        localDynamicOrb.setPosition(new Vec2((float)localX,(float) localY));
+        return new Sensor(localDynamicOrb, new CircleShape((float)radius));
     }
 
     //image missing
