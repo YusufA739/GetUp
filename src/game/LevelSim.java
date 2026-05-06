@@ -16,10 +16,11 @@ public class LevelSim extends Level {
     @Override
     public void load() {
         loadSetup();
-        cybertron = new Planet(1,2000000000,0,0, 0, 0);
+        cybertron = new Planet(1,1500000000,0,0, 0, 0);
         pAll.add(cybertron);
-        vulcan = new Planet(1,2000000000,5,5,0,0);
+        vulcan = new Planet(1,1000000000,5,5,5,10);
         pAll.add(vulcan);
+
     }
 
     @Override

@@ -5,6 +5,7 @@ import city.cs.engine.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+//import org.jbox2d.dynamics.World;
 
 
 /** The Game class. Contains main method here and this file should be run to play the game.*/
@@ -15,7 +16,7 @@ public class Game {
     public static int tick = 0;//can change to private and non-static as it is passed always as a parameter
 
     private int maxTick = 29; //controls the frames in every in-game second (you can make seconds longer by increasing this value, but it will not speed up or slow down the physics, only logical time delays (so getting up takes longer, but the falling down part still takes the same amount of time, physical physics will be the same but logic for physics will change)
-    public static int fps = 60; //60fps is the max stable fps of the engine
+    public static int fps = 200; //60fps is the max stable fps of the engine
 
     private int physicsSimLevelNumber = 12;//sim level no. (AVOIDS PIRATESOFTWARE a.k.a magic numbers)
 
@@ -265,7 +266,7 @@ public class Game {
         game_window.setVisible(true);
 
         //optional: uncomment this to make a debugging view
-        //JFrame debugView = new DebugViewer(world_1_1, 640, 480);
+        JFrame debugView = new DebugViewer(world_1_1, 640, 480);
 
         // start our game world simulation!
         world_1_1.start();
@@ -341,6 +342,9 @@ public class Game {
     /** Run the game.*/
     public static void main(String[] args) {
         Game game = new Game();
+        World world = game.world_1_1;
+
+
 
     }
 

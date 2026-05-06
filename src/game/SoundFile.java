@@ -2,10 +2,6 @@ package game;
 
 import city.cs.engine.SoundClip;
 
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.IOException;
-
 /**
  * Class Wrapper for SoundClip for duration of clips and fetching sound clips. SFX do not need a length set if they are relatively short. Long ones do need a length given.
  *

@@ -1,0 +1,4 @@
+Yusuf,37.35
+JohnPork,80.35
+fuckyou,70.85
+bizzy,90.8
