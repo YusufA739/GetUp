@@ -4,7 +4,7 @@ import PlanetaryExpansionPack1.Planet;
 import city.cs.engine.SoundClip;
 
 public class LevelSim extends Level {
-    Planet vulcan;
+    Planet Sun;
     Planet cybertron;
 
     private SoundClip bgMusic;{bgMusic = fetchSoundClip("data/beginning2.wav");}
@@ -16,17 +16,17 @@ public class LevelSim extends Level {
     @Override
     public void load() {
         loadSetup();
-        cybertron = new Planet(1,1500000000,0,0, 0, 0);
+        Sun = new Planet(5,2099999999,0,0, 0, 0);
+        pAll.add(Sun);
+        cybertron = new Planet(1, 6363,0,14.9F,-6F,0);
         pAll.add(cybertron);
-        vulcan = new Planet(1,1000000000,5,5,5,10);
-        pAll.add(vulcan);
-
+        Sun.setImmovable();
     }
 
     @Override
     public void update() {
-        cybertron.addForce(vulcan.mass,vulcan.localX,vulcan.localY);
-        vulcan.addForce(cybertron.mass,cybertron.localX,cybertron.localY);
+        cybertron.addForce(Sun.mass,Sun.localX,Sun.localY);
+        Sun.addForce(cybertron.mass,cybertron.localX,cybertron.localY);//not needed for immovable
 
         pAllUpdate();
     }

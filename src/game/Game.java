@@ -5,7 +5,6 @@ import city.cs.engine.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-//import org.jbox2d.dynamics.World;
 
 
 /** The Game class. Contains main method here and this file should be run to play the game.*/

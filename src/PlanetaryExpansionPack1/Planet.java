@@ -3,7 +3,6 @@ package PlanetaryExpansionPack1;
 import city.cs.engine.*;
 import game.Level;
 import game.PlayerController;
-import game.PlayerDynamicBody;
 import org.jbox2d.common.Vec2;
 
 
@@ -25,8 +24,9 @@ public class Planet {
     private static World localWorld;
     private static Level localLevel;//set at start of level in load() (current level we're on: similar to currentLevelObject in Game)
     private Shape localShape;
-    private DynamicBody localDynamicOrb;
-    private static PlayerController localRefPlayerControllerDynamicOrb;
+    private PlanetDynamicBody localDynamicOrb;
+    private PlanetStaticBody localStaticOrb;
+    private static PlayerController localRefPlayerControllerDynamicOrb;//unused but here due to general behaviour of Dynamic bodies in level
 
     //physics values - units in SI standard units (Voltage in Volts, Current in Amperes, Distance in metres)
     public float mass = 0;
@@ -66,7 +66,7 @@ public class Planet {
         localShape = new CircleShape((float)givenRadius);
 
         // object coming into creation
-        localDynamicOrb = new DynamicBody(localWorld, localShape);
+        localDynamicOrb = new PlanetDynamicBody(localWorld, localShape);
         localDynamicOrb.setPosition(new Vec2((float)givenX, (float)givenY));
         // end of section
 
@@ -180,6 +180,14 @@ public class Planet {
 
 
     //setters
+    public void setImmovable() {
+        Vec2 immovableCoords = localDynamicOrb.getPosition();//get most up-to-date coords directly from object. Save in vec2
+        //as easier to parse
+        localDynamicOrb.destroy();
+        localStaticOrb = new PlanetStaticBody(localWorld, localShape);
+        localStaticOrb.setPosition(immovableCoords);
+    }
+
     public void setX(float givenX) {
         localX = givenX;
         initialPosition[0] = givenX;
@@ -218,17 +226,24 @@ public class Planet {
     }
     //end of setters
 
-    public void isHeartSensor() {
+    public void isPlanetSensor() {
         SoundClip sc = fetchSoundClip("data/grow.wav");//used to be 1upAmped.wav
         sensorPrep().addSensorListener(new SensorListener() {
             @Override
             public void beginContact(SensorEvent sensorEvent) {
                 Body reportingBody = sensorEvent.getContactBody();
-                SolidFixture otherBody = sensorEvent.getContactFixture();
-                if (reportingBody instanceof PlayerDynamicBody) {
-                    localDynamicOrb.destroy();
-                    localRefPlayerControllerDynamicOrb.healthIncrease();
+                if (reportingBody instanceof PlanetDynamicBody) {
                     sc.play();
+                    Vec2 lastFramePos = localDynamicOrb.getLinearVelocity();//use last real velocities instead of last calculated or fake velocities
+                    if (reportingBody.getPosition().x == localDynamicOrb.getPosition().x && reportingBody.getPosition().y == localDynamicOrb.getPosition().y) {}
+                    lastFramePos.x += velocityX;
+                    lastFramePos.y += velocityY;
+                    velocityX = 0;//added here so first update can take initial velocity parameters into account first
+                    velocityY = 0;//Would not change much, if no init param for vel x and y were taken
+                    localDynamicOrb.setLinearVelocity(lastFramePos);
+                    localX = localDynamicOrb.getPosition().x;
+                    localY = localDynamicOrb.getPosition().y;
+
                 }
             }
 
@@ -240,56 +255,10 @@ public class Planet {
         localDynamicOrb.addImage(new BodyImage("data/heartsquare.png", (float) (radius*2)));
     }
 
-    public void isCoinSensor() {
-        sensorPrep().addSensorListener(new SensorListener() {
-            SoundClip coinPickupSound = fetchSoundClip("data/coin.wav");//sound is assigned within sensorListener
-            SoundClip levelCompleteSound = fetchSoundClip("data/grow.wav");
-            @Override
-            public void beginContact(SensorEvent sensorEvent) {
-                Body reportingBody = sensorEvent.getContactBody();
-                SolidFixture otherBody = sensorEvent.getContactFixture();
-                if (reportingBody instanceof PlayerDynamicBody) {
-                    localDynamicOrb.destroy();
-                    coinPickupSound.play();
-                    localRefPlayerControllerDynamicOrb.scoreIncrease();
-                }
-            }
-
-            @Override
-            public void endContact(SensorEvent sensorEvent) {
-
-            }
-        });
-        localDynamicOrb.addImage(new BodyImage("data/coinCircle.png", (float) (radius*2)));
-    }
-
-    public void isEndCoinSensor() {
-        sensorPrep().addSensorListener(new SensorListener() {
-            SoundClip endCoinPickupSound = fetchSoundClip("data/endCoin.wav");
-            SoundClip levelFinishSound = fetchSoundClip("data/goal.wav");
-            @Override
-            public void beginContact(SensorEvent sensorEvent) {
-                Body reportingBody = sensorEvent.getContactBody();
-                SolidFixture otherBody = sensorEvent.getContactFixture();
-                if (reportingBody instanceof PlayerDynamicBody) {
-                    localDynamicOrb.destroy();
-                    endCoinPickupSound.play();
-                    localRefPlayerControllerDynamicOrb.scoreIncrease(5);
-                }
-            }
-
-            @Override
-            public void endContact(SensorEvent sensorEvent) {
-                //this won't register/be executed/be called, unless the object is not destroyed upon first contact
-            }
-        });
-        localDynamicOrb.addImage(new BodyImage("data/endCoinCircle.png", (float) (radius*2)));
-    }
-
     public Sensor sensorPrep() {
         localDynamicOrb.destroy();
         localShape = new CircleShape((float)radius*0.1f);
-        localDynamicOrb = new DynamicBody(localWorld, localShape);
+        localDynamicOrb = new PlanetDynamicBody(localWorld, localShape);
         localDynamicOrb.setGravityScale(0);
         localDynamicOrb.setPosition(new Vec2((float)localX,(float) localY));
         return new Sensor(localDynamicOrb, new CircleShape((float)radius));
